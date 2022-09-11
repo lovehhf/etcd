@@ -418,6 +418,11 @@ func (r *raft) send(m pb.Message) {
 	if m.To == r.id {
 		r.logger.Panicf("message should not be self-addressed when sending %s", m.Type)
 	}
+
+	if m.Type != pb.MsgHeartbeat && m.Type != pb.MsgHeartbeatResp {
+		r.logger.Infof("%x send %s to %x, msg: %+v", m.From, m.Type.String(), m.To, m)
+	}
+
 	r.msgs = append(r.msgs, m)
 }
 
@@ -863,6 +868,11 @@ func (r *raft) poll(id uint64, t pb.MessageType, v bool) (granted int, rejected 
 }
 
 func (r *raft) Step(m pb.Message) error {
+
+	if m.Type != pb.MsgHeartbeatResp && m.Type != pb.MsgHeartbeat && m.Type != pb.MsgBeat && m.Type != pb.MsgCheckQuorum {
+		r.logger.Infof("%x received %s from %x, msg: %+v", m.To, m.Type.String(), m.From, m)
+	}
+
 	// Handle the message term, which may result in our stepping down to a follower.
 	switch {
 	case m.Term == 0:

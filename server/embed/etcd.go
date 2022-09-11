@@ -163,24 +163,24 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 	backendFreelistType := parseBackendFreelistType(cfg.BackendFreelistType)
 
 	srvcfg := config.ServerConfig{
-		Name:                                     cfg.Name,
-		ClientURLs:                               cfg.ACUrls,
-		PeerURLs:                                 cfg.APUrls,
-		DataDir:                                  cfg.Dir,
-		DedicatedWALDir:                          cfg.WalDir,
-		SnapshotCount:                            cfg.SnapshotCount,
+		Name:                                     cfg.Name,          // 节点的名字，name参数
+		ClientURLs:                               cfg.ACUrls,        // 客户端的 url, advertise-client-urls 参数
+		PeerURLs:                                 cfg.APUrls,        // 集群通信 url, initial-advertise-peer-urls 参数
+		DataDir:                                  cfg.Dir,           // 数据目录，data-dir 参数
+		DedicatedWALDir:                          cfg.WalDir,        // 指定的wal目录, wal-dir 参数
+		SnapshotCount:                            cfg.SnapshotCount, // 触发快照的 commited 日志的数量， snapshot-count参数
 		SnapshotCatchUpEntries:                   cfg.SnapshotCatchUpEntries,
-		MaxSnapFiles:                             cfg.MaxSnapFiles,
-		MaxWALFiles:                              cfg.MaxWalFiles,
+		MaxSnapFiles:                             cfg.MaxSnapFiles, // 最大的快照文件数量，max-snapshots 参数指定， 默认是5, 0表示不限制
+		MaxWALFiles:                              cfg.MaxWalFiles,  // 最大的wal文件数量，max-wals 参数指定, 默认也是5
 		InitialPeerURLsMap:                       urlsmap,
 		InitialClusterToken:                      token,
 		DiscoveryURL:                             cfg.Durl,
 		DiscoveryProxy:                           cfg.Dproxy,
 		DiscoveryCfg:                             cfg.DiscoveryCfg,
-		NewCluster:                               cfg.IsNewCluster(),
-		PeerTLSInfo:                              cfg.PeerTLSInfo,
-		TickMs:                                   cfg.TickMs,
-		ElectionTicks:                            cfg.ElectionTicks(),
+		NewCluster:                               cfg.IsNewCluster(),  // 是否是新集群
+		PeerTLSInfo:                              cfg.PeerTLSInfo,     // tls 证书信息
+		TickMs:                                   cfg.TickMs,          // 1个tick的时间(单位毫秒),默认是100，heartbeat-interval 参数指定
+		ElectionTicks:                            cfg.ElectionTicks(), // 选举超时时间, 单位是tick, 默认是10
 		WaitClusterReadyTimeout:                  cfg.ExperimentalWaitClusterReadyTimeout,
 		InitialElectionTickAdvance:               cfg.InitialElectionTickAdvance,
 		AutoCompactionRetention:                  autoCompactionRetention,
@@ -189,12 +189,12 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 		BackendBatchLimit:                        cfg.BackendBatchLimit,
 		BackendFreelistType:                      backendFreelistType,
 		BackendBatchInterval:                     cfg.BackendBatchInterval,
-		MaxTxnOps:                                cfg.MaxTxnOps,
+		MaxTxnOps:                                cfg.MaxTxnOps, // 单次事务支持的最大数量，max-txn-ops参数指定, 默认是 128
 		MaxRequestBytes:                          cfg.MaxRequestBytes,
 		MaxConcurrentStreams:                     cfg.MaxConcurrentStreams,
 		SocketOpts:                               cfg.SocketOpts,
 		StrictReconfigCheck:                      cfg.StrictReconfigCheck,
-		ClientCertAuthEnabled:                    cfg.ClientTLSInfo.ClientCertAuth,
+		ClientCertAuthEnabled:                    cfg.ClientTLSInfo.ClientCertAuth, // 是否开启双向认证,
 		AuthToken:                                cfg.AuthToken,
 		BcryptCost:                               cfg.BcryptCost,
 		TokenTTL:                                 cfg.AuthTokenTTL,
@@ -204,9 +204,9 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 		CorruptCheckTime:                         cfg.ExperimentalCorruptCheckTime,
 		CompactHashCheckEnabled:                  cfg.ExperimentalCompactHashCheckEnabled,
 		CompactHashCheckTime:                     cfg.ExperimentalCompactHashCheckTime,
-		PreVote:                                  cfg.PreVote,
+		PreVote:                                  cfg.PreVote, // 是否开启预选举,通过pre-vote参数指定，默认是false
 		Logger:                                   cfg.logger,
-		ForceNewCluster:                          cfg.ForceNewCluster,
+		ForceNewCluster:                          cfg.ForceNewCluster, // 强制开启单节点新集群，删掉其他节点,适用于大部分节点挂掉起不来的情况
 		EnableGRPCGateway:                        cfg.EnableGRPCGateway,
 		ExperimentalEnableDistributedTracing:     cfg.ExperimentalEnableDistributedTracing,
 		UnsafeNoFsync:                            cfg.UnsafeNoFsync,
