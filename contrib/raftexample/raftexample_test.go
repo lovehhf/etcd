@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -291,4 +292,46 @@ func TestSnapshot(t *testing.T) {
 	}
 	close(c.applyDoneC)
 	<-clus.snapshotTriggeredC[0]
+}
+
+func TestAddRemovedNode(t *testing.T) {
+	clus := newCluster(3)
+	defer clus.closeNoErrors(t)
+
+	go func() {
+		clus.proposeC[0] <- "foo"
+		log.Printf("send foo to proposeC")
+	}()
+
+	// remove node 3
+	clus.confChangeC[0] <- raftpb.ConfChange{
+		Type:   raftpb.ConfChangeRemoveNode,
+		NodeID: 3,
+	}
+
+	close(clus.proposeC[2])
+	<-clus.errorC[2]
+
+	os.RemoveAll("raftexample-3")
+	os.RemoveAll("raftexample-3-snap")
+
+	// readd node3
+	newNodeURL := "http://127.0.0.1:10002"
+	clus.confChangeC[0] <- raftpb.ConfChange{
+		Type:    raftpb.ConfChangeAddNode,
+		NodeID:  3,
+		Context: []byte(newNodeURL),
+	}
+
+	proposeC := make(chan string)
+	confChangeC := make(chan raftpb.ConfChange)
+
+	clus.commitC[2], clus.errorC[2], _ = newRaftNode(3, clus.peers, true, nil, proposeC, confChangeC)
+	clus.proposeC[2] = proposeC
+	clus.confChangeC[2] = confChangeC
+
+	c, ok := <-clus.commitC[2]
+	if !ok || c.data[0] != "foo" {
+		t.Fatalf("Commit failed")
+	}
 }
